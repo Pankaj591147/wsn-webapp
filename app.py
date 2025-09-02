@@ -15,7 +15,6 @@ st.set_page_config(
 )
 
 # ----------------- STYLING -----------------
-# (You can add custom CSS here if you want more advanced styling)
 st.markdown("""
 <style>
     /* Main app background */
@@ -57,27 +56,30 @@ st.markdown("""
 
 # ----------------- CACHED DATA LOADING -----------------
 @st.cache_resource
-def load_model_from_zip(zip_path, file_in_zip):
+def load_object_from_zip(zip_path, file_in_zip):
     try:
         with zipfile.ZipFile(zip_path, 'r') as z:
             file_bytes = z.read(file_in_zip)
             return joblib.load(io.BytesIO(file_bytes))
     except Exception as e:
-        st.error(f"Fatal Error: Could not load model from '{zip_path}'. Please ensure the file is in the repository. Error: {e}")
+        st.error(f"Fatal Error: Could not load '{file_in_zip}' from '{zip_path}'. Please ensure the file is in the repository and the zip archive is correct. Error: {e}")
         st.stop()
 
 @st.cache_resource
-def load_joblib(file_path):
+def load_joblib_direct(file_path):
     try:
         return joblib.load(file_path)
     except Exception as e:
         st.error(f"Fatal Error: Could not load '{file_path}'. Please ensure the file is in the repository. Error: {e}")
         st.stop()
 
-# Load all necessary files once and cache them
-model = load_model_from_zip('wsn_modelC.zip', 'wsn_model.joblib')
-expected_features = load_joblib('feature_names.joblib')
-scaler = load_joblib('scaler.joblib')
+# --- START OF CORRECTED CODE ---
+# Load ALL necessary files, telling the code where to look for each one.
+model = load_object_from_zip('wsn_modelC.zip', 'wsn_model.joblib')
+scaler = load_object_from_zip('wsn_modelC.zip', 'scaler.joblib') # Correctly load scaler from the zip
+expected_features = load_joblib_direct('feature_names.joblib') # This file is not in the zip
+# --- END OF CORRECTED CODE ---
+
 
 # ----------------- PAGE SELECTION -----------------
 st.sidebar.title("Navigation")
@@ -155,10 +157,8 @@ elif page == "Live Intrusion Detection":
 
             with col1_viz:
                 st.subheader("Detailed Packet Analysis")
-                # Color-code the results
                 def highlight_attacks(row):
                     return ['background-color: #e94560; color: white' if row['Is Attack'] else '' for _ in row]
-
                 st.dataframe(df_display.style.apply(highlight_attacks, axis=1), height=400)
 
             with col2_viz:
@@ -166,22 +166,11 @@ elif page == "Live Intrusion Detection":
                 summary_df = df_display['Prediction'].value_counts().reset_index()
                 summary_df.columns = ['Prediction Type', 'Count']
                 
-                # Create a cool donut chart
                 fig = px.pie(summary_df, names='Prediction Type', values='Count', hole=0.5,
                              color_discrete_map={'Normal Traffic': '#16c79a',
                                                  'Blackhole Attack': '#e94560',
                                                  'Flooding Attack': '#ff8c00',
                                                  'Grayhole Attack': '#f08080',
                                                  'Scheduling Attack': '#ff6347'})
-                fig.update_layout(
-                    title_text='Distribution of Predictions',
-                    template='plotly_dark',
-                    legend_title_text='Traffic Type'
-                )
-                st.plotly_chart(fig, use_container_width=True)
-
-        except Exception as e:
-            st.error(f"An error occurred during prediction: {e}")
-
-    else:
-        st.info("Awaiting CSV file upload...")
+                fig.update_layout(title_text='Distribution of Predictions', template='plotly_dark', legend_title_text='Traffic Type')
+                st.plotly_chart(fig, use_container
