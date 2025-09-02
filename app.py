@@ -173,4 +173,10 @@ elif page == "Live Intrusion Detection":
                                                  'Grayhole Attack': '#f08080',
                                                  'Scheduling Attack': '#ff6347'})
                 fig.update_layout(title_text='Distribution of Predictions', template='plotly_dark', legend_title_text='Traffic Type')
-                st.plotly_chart(fig, use_container
+                st.plotly_chart(fig, use_container_width=True)
+
+        except Exception as e:
+            st.error(f"An error occurred during prediction: {e}")
+
+    else:
+        st.info("Awaiting CSV file upload...")
