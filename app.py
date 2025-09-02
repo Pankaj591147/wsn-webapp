@@ -5,28 +5,35 @@ from sklearn.preprocessing import StandardScaler
 import zipfile
 import io
 
-# --- START OF CHANGED CODE ---
+# --- Function to load model from a zip file ---
+def load_model_from_zip(zip_path, file_in_zip):
+    try:
+        with zipfile.ZipFile(zip_path, 'r') as z:
+            file_bytes = z.read(file_in_zip)
+            return joblib.load(io.BytesIO(file_bytes))
+    except FileNotFoundError:
+        st.error(f"Error: The zip file '{zip_path}' was not found in the repository.")
+        st.stop()
+    except KeyError:
+        st.error(f"Error: Could not find '{file_in_zip}' inside '{zip_path}'.")
+        st.stop()
+    except Exception as e:
+        st.error(f"An unexpected error occurred while loading the model: {e}")
+        st.stop()
 
-# Function to load objects from a zip file (works for model and feature list)
-def load_object_from_zip(zip_path, file_in_zip):
-    with zipfile.ZipFile(zip_path, 'r') as z:
-        file_bytes = z.read(file_in_zip)
-        return joblib.load(io.BytesIO(file_bytes))
+# --- Load the model and feature names ---
+# Load the model FROM THE ZIP FILE
+model = load_model_from_zip('wsn_modelC.zip', 'wsn_model.joblib')
 
-# Add 'feature_names.joblib' to your zip file and upload it to GitHub
-# For now, let's assume it's directly in the repo for simplicity
+# Load the feature names DIRECTLY from the repository
 try:
-    # Load the model
-    model = joblib.load('wsn_model.joblib') # Reverting to direct load for clarity, use zip if needed
-    # Load the feature names the model was trained on
-    expected_features = joblib.load('feature_names.joblib') 
-except Exception as e:
-    st.error(f"Error loading model or feature list: {e}")
-    st.info("Please ensure 'wsn_model.joblib' and 'feature_names.joblib' are in the GitHub repository.")
+    expected_features = joblib.load('feature_names.joblib')
+except FileNotFoundError:
+    st.error("Error: 'feature_names.joblib' not found. Please ensure it is in the GitHub repository.")
     st.stop()
 
-# --- END OF CHANGED CODE ---
 
+# --- Main App Logic ---
 # Create a standard scaler
 scaler = StandardScaler()
 
@@ -43,7 +50,6 @@ if uploaded_file is not None:
     st.dataframe(df_test.head())
 
     try:
-        # --- START OF CHANGED CODE ---
         # Keep a copy of the original data for display
         df_display = df_test.copy() 
         
@@ -55,7 +61,6 @@ if uploaded_file is not None:
 
         # Select and reorder the columns to match the model's training data exactly
         X_test = df_test[expected_features]
-        # --- END OF CHANGED CODE ---
         
         # Scale the features
         X_test_scaled = scaler.fit_transform(X_test)
