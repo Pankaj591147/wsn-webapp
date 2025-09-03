@@ -73,12 +73,10 @@ def load_joblib_direct(file_path):
         st.error(f"Fatal Error: Could not load '{file_path}'. Please ensure the file is in the repository. Error: {e}")
         st.stop()
 
-# --- START OF CORRECTED CODE ---
-# Load all necessary files, telling the code where to look for each one.
-model = load_object_from_zip('wsn_modelC.zip', 'wsn_model.joblib') # Get model from zip
-scaler = load_joblib_direct('scaler.joblib') # Load scaler as a separate file
-expected_features = load_joblib_direct('feature_names.joblib') # Load features as a separate file
-# --- END OF CORRECTED CODE ---
+# Load all necessary files
+model = load_object_from_zip('wsn_modelC.zip', 'wsn_model.joblib')
+scaler = load_joblib_direct('scaler.joblib')
+expected_features = load_joblib_direct('feature_names.joblib')
 
 
 # ----------------- PAGE SELECTION -----------------
@@ -90,19 +88,9 @@ page = st.sidebar.radio("Go to", ["Live Intrusion Detection", "About the Project
 if page == "About the Project":
     st.title("🛡️ WSN Intrusion Detection System")
     st.markdown("### A Machine Learning Approach to Secure Wireless Sensor Networks")
-    
+    # (About page content remains the same)
     st.markdown("""
-    This project leverages a **Random Forest classifier**, a powerful machine learning model, to detect and classify various types of intrusions in Wireless Sensor Networks (WSNs).
-    
-    **Why is this important?**
-    WSNs are used in critical applications like environmental monitoring, healthcare, and military surveillance. However, their resource-constrained nature makes them highly vulnerable to attacks. This system provides an intelligent, data-driven defense mechanism.
-    
-    **Technology Stack:**
-    - **Model:** Scikit-learn (Random Forest)
-    - **Web Framework:** Streamlit
-    - **Data Handling:** Pandas
-    - **Deployment:** Streamlit Community Cloud & GitHub
-    
+    This project leverages a **Random Forest classifier** to detect intrusions in Wireless Sensor Networks (WSNs).
     Navigate to the **Live Intrusion Detection** page to upload your own WSN data and see the model in action!
     """)
     st.image("https://placehold.co/800x300/1a1a2e/e94560?text=WSN+Security+Concept", caption="Securing the sensory backbone of the IoT.")
@@ -137,7 +125,6 @@ elif page == "Live Intrusion Detection":
             df_display['Prediction'] = [attack_labels.get(p, 'Unknown') for p in predictions]
             df_display['Is Attack'] = df_display['Prediction'] != 'Normal Traffic'
 
-            # --- Display Metrics ---
             total_packets = len(df_display)
             threats_detected = df_display['Is Attack'].sum()
             normal_packets = total_packets - threats_detected
@@ -149,17 +136,34 @@ elif page == "Live Intrusion Detection":
             col2.metric("Normal Packets", f"{normal_packets:,}")
             col3.metric("Threats Detected", f"{threats_detected:,}")
 
-            # --- Display Results ---
             st.markdown("---")
             st.header("Prediction Results & Visualization")
 
             col1_viz, col2_viz = st.columns([0.6, 0.4])
 
             with col1_viz:
-                st.subheader("Detailed Packet Analysis")
+                # --- START OF CORRECTED CODE ---
+                st.subheader("Detailed Packet Analysis (Top 1000 Rows)")
                 def highlight_attacks(row):
                     return ['background-color: #e94560; color: white' if row['Is Attack'] else '' for _ in row]
-                st.dataframe(df_display.style.apply(highlight_attacks, axis=1), height=400)
+                
+                # Only style and display the first 1000 rows
+                st.dataframe(df_display.head(1000).style.apply(highlight_attacks, axis=1), height=350)
+
+                # Prepare the full file for download
+                @st.cache_data # Cache the conversion to make downloads faster
+                def convert_df_to_csv(df):
+                    return df.to_csv(index=False).encode('utf-8')
+
+                csv = convert_df_to_csv(df_display)
+
+                st.download_button(
+                    label="📥 Download Full Results (CSV)",
+                    data=csv,
+                    file_name='prediction_results.csv',
+                    mime='text/csv',
+                )
+                # --- END OF CORRECTED CODE ---
 
             with col2_viz:
                 st.subheader("Prediction Summary")
