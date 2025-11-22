@@ -168,38 +168,33 @@ elif page == "Live Intrusion Detection":
                 summary_df = df_display['Prediction'].value_counts().reset_index()
                 summary_df.columns = ['Prediction Type', 'Count']
                 
-                # Sort data for cleaner bar chart (Descending order)
-                summary_df = summary_df.sort_values(by='Count', ascending=True)
+                # Sort Descending for a clean area/line drop-off effect
+                summary_df = summary_df.sort_values(by='Count', ascending=False)
 
-                # --- CHANGED TO HORIZONTAL BAR CHART WITH GRAYSCALE PALETTE ---
-                # This visualization is optimized for Research Paper Screenshots (B&W Print safe)
+                # --- CHANGED TO AREA CHART ---
+                # Styled for Research Paper (High Contrast / B&W)
                 
-                fig = px.bar(summary_df, 
-                             x='Count', 
-                             y='Prediction Type', 
-                             orientation='h', # Horizontal bars allow for longer labels
-                             text='Count',
-                             color='Prediction Type',
-                             # Specific Hex codes for distinct Grayscale shades
-                             color_discrete_map={
-                                 'Normal Traffic': '#D3D3D3',    # Light Grey
-                                 'Blackhole Attack': '#000000',  # Black
-                                 'Flooding Attack': '#696969',   # Dim Grey
-                                 'Grayhole Attack': '#A9A9A9',   # Dark Grey
-                                 'Scheduling Attack': '#808080'  # Grey
-                             })
+                fig = px.area(summary_df, 
+                              x='Prediction Type', 
+                              y='Count',
+                              markers=True,
+                              text='Count')
                 
-                # Update layout to "simple_white" for clean paper background
                 fig.update_layout(
                     title_text='Distribution of Predictions',
-                    template='simple_white', # White background, Black text (Standard for Papers)
-                    showlegend=False,        # Legend redundant in bar chart
-                    xaxis_title="Number of Packets",
-                    yaxis_title="Traffic Type"
+                    template='simple_white', # White background for paper
+                    showlegend=False,
+                    xaxis_title="Traffic Type",
+                    yaxis_title="Packet Count"
                 )
                 
-                # Add outlines to bars for better definition in print and place text outside
-                fig.update_traces(marker_line_color='black', marker_line_width=1, textposition='outside')
+                # Apply B&W styles: Black line, Grey fill
+                fig.update_traces(
+                    line_color='#000000', # Solid Black Line
+                    marker_color='#000000', # Black Dots
+                    fillcolor='rgba(128, 128, 128, 0.3)', # Light Grey Fill (30% opacity)
+                    textposition='top center'
+                )
                 
                 st.plotly_chart(fig, use_container_width=True)
 
