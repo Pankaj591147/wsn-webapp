@@ -142,7 +142,6 @@ elif page == "Live Intrusion Detection":
             col1_viz, col2_viz = st.columns([0.6, 0.4])
 
             with col1_viz:
-                # --- START OF CORRECTED CODE ---
                 st.subheader("Detailed Packet Analysis (Top 1000 Rows)")
                 def highlight_attacks(row):
                     return ['background-color: #e94560; color: white' if row['Is Attack'] else '' for _ in row]
@@ -163,20 +162,45 @@ elif page == "Live Intrusion Detection":
                     file_name='prediction_results.csv',
                     mime='text/csv',
                 )
-                # --- END OF CORRECTED CODE ---
 
             with col2_viz:
                 st.subheader("Prediction Summary")
                 summary_df = df_display['Prediction'].value_counts().reset_index()
                 summary_df.columns = ['Prediction Type', 'Count']
                 
-                fig = px.pie(summary_df, names='Prediction Type', values='Count', hole=0.5,
-                             color_discrete_map={'Normal Traffic': '#16c79a',
-                                                 'Blackhole Attack': '#e94560',
-                                                 'Flooding Attack': '#ff8c00',
-                                                 'Grayhole Attack': '#f08080',
-                                                 'Scheduling Attack': '#ff6347'})
-                fig.update_layout(title_text='Distribution of Predictions', template='plotly_dark', legend_title_text='Traffic Type')
+                # Sort data for cleaner bar chart (Descending order)
+                summary_df = summary_df.sort_values(by='Count', ascending=True)
+
+                # --- CHANGED TO HORIZONTAL BAR CHART WITH GRAYSCALE PALETTE ---
+                # This visualization is optimized for Research Paper Screenshots (B&W Print safe)
+                
+                fig = px.bar(summary_df, 
+                             x='Count', 
+                             y='Prediction Type', 
+                             orientation='h', # Horizontal bars allow for longer labels
+                             text='Count',
+                             color='Prediction Type',
+                             # Specific Hex codes for distinct Grayscale shades
+                             color_discrete_map={
+                                 'Normal Traffic': '#D3D3D3',    # Light Grey
+                                 'Blackhole Attack': '#000000',  # Black
+                                 'Flooding Attack': '#696969',   # Dim Grey
+                                 'Grayhole Attack': '#A9A9A9',   # Dark Grey
+                                 'Scheduling Attack': '#808080'  # Grey
+                             })
+                
+                # Update layout to "simple_white" for clean paper background
+                fig.update_layout(
+                    title_text='Distribution of Predictions',
+                    template='simple_white', # White background, Black text (Standard for Papers)
+                    showlegend=False,        # Legend redundant in bar chart
+                    xaxis_title="Number of Packets",
+                    yaxis_title="Traffic Type"
+                )
+                
+                # Add outlines to bars for better definition in print and place text outside
+                fig.update_traces(marker_line_color='black', marker_line_width=1, textposition='outside')
+                
                 st.plotly_chart(fig, use_container_width=True)
 
         except Exception as e:
