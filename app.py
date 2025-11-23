@@ -170,12 +170,26 @@ elif page == "Live Intrusion Detection":
                 summary_df = df_display['Prediction'].value_counts().reset_index()
                 summary_df.columns = ['Prediction Type', 'Count']
                 
-                fig = px.pie(summary_df, names='Prediction Type', values='Count', hole=0.5,
-                             color_discrete_map={'Normal Traffic': '#16c79a',
-                                                 'Blackhole Attack': '#e94560',
-                                                 'Flooding Attack': '#ff8c00',
-                                                 'Grayhole Attack': '#f08080',
-                                                 'Scheduling Attack': '#ff6347'})
+                fig = px.pie(
+    summary_df,
+    names='Prediction Type',
+    values='Count',
+    hole=0.5,
+    color_discrete_map={
+        'Normal Traffic': '#0aff99',         # Neon green
+        'Blackhole Attack': '#ff0033',       # Deep red
+        'Flooding Attack': '#ff6600',        # Dark orange
+        'Grayhole Attack': '#aa88ff',        # Violet
+        'Scheduling Attack': '#0099ff'       # Deep blue
+    }
+)
+
+fig.update_layout(
+    title_text='Distribution of Predictions',
+    template='plotly_dark',
+    legend_title_text='Traffic Type'
+)
+
                 fig.update_layout(title_text='Distribution of Predictions', template='plotly_dark', legend_title_text='Traffic Type')
                 st.plotly_chart(fig, use_container_width=True)
 
