@@ -142,6 +142,7 @@ elif page == "Live Intrusion Detection":
             col1_viz, col2_viz = st.columns([0.6, 0.4])
 
             with col1_viz:
+                # --- START OF CORRECTED CODE ---
                 st.subheader("Detailed Packet Analysis (Top 1000 Rows)")
                 def highlight_attacks(row):
                     return ['background-color: #e94560; color: white' if row['Is Attack'] else '' for _ in row]
@@ -162,40 +163,20 @@ elif page == "Live Intrusion Detection":
                     file_name='prediction_results.csv',
                     mime='text/csv',
                 )
+                # --- END OF CORRECTED CODE ---
 
             with col2_viz:
                 st.subheader("Prediction Summary")
                 summary_df = df_display['Prediction'].value_counts().reset_index()
                 summary_df.columns = ['Prediction Type', 'Count']
                 
-                # Sort Descending for a clean area/line drop-off effect
-                summary_df = summary_df.sort_values(by='Count', ascending=False)
-
-                # --- CHANGED TO AREA CHART ---
-                # Styled for Research Paper (High Contrast / B&W)
-                
-                fig = px.area(summary_df, 
-                              x='Prediction Type', 
-                              y='Count',
-                              markers=True,
-                              text='Count')
-                
-                fig.update_layout(
-                    title_text='Distribution of Predictions',
-                    template='simple_white', # White background for paper
-                    showlegend=False,
-                    xaxis_title="Traffic Type",
-                    yaxis_title="Packet Count"
-                )
-                
-                # Apply B&W styles: Black line, Grey fill
-                fig.update_traces(
-                    line_color='#000000', # Solid Black Line
-                    marker_color='#000000', # Black Dots
-                    fillcolor='rgba(128, 128, 128, 0.3)', # Light Grey Fill (30% opacity)
-                    textposition='top center'
-                )
-                
+                fig = px.pie(summary_df, names='Prediction Type', values='Count', hole=0.5,
+                             color_discrete_map={'Normal Traffic': '#16c79a',
+                                                 'Blackhole Attack': '#e94560',
+                                                 'Flooding Attack': '#ff8c00',
+                                                 'Grayhole Attack': '#f08080',
+                                                 'Scheduling Attack': '#ff6347'})
+                fig.update_layout(title_text='Distribution of Predictions', template='plotly_dark', legend_title_text='Traffic Type')
                 st.plotly_chart(fig, use_container_width=True)
 
         except Exception as e:
