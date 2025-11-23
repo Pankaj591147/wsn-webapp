@@ -17,109 +17,42 @@ st.set_page_config(
 # ----------------- STYLING -----------------
 st.markdown("""
 <style>
-    /* Main background and text colors */
+    /* Main app background */
     .stApp {
-        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        background-color: #1a1a2e;
         color: #e0e0e0;
     }
-    
     /* Sidebar styling */
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #1a1a3e 0%, #2d2d5f 100%);
+    .css-1d391kg {
+        background-color: #16213e;
     }
-    
-    [data-testid="stSidebar"] .stRadio > label {
-        color: #00d9ff !important;
-        font-weight: 600;
+    /* Metric styling */
+    .stMetric {
+        background-color: #0f3460;
+        border-radius: 10px;
+        padding: 15px;
     }
-    
-    /* Headers */
-    h1, h2, h3 {
-        color: #00d9ff !important;
-        text-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
+    .stMetric > label {
+        color: #a0a0a0;
     }
-    
-    /* Metrics styling */
-    [data-testid="stMetricValue"] {
-        color: #9d4edd !important;
-        font-size: 2rem !important;
-        font-weight: bold !important;
+    .stMetric > div {
+        color: #e94560;
     }
-    
-    [data-testid="stMetricLabel"] {
-        color: #00d9ff !important;
-        font-weight: 600 !important;
+    /* Button styling */
+    .stButton>button {
+        border-radius: 20px;
+        border: 1px solid #e94560;
+        background-color: transparent;
+        color: #e94560;
     }
-    
-    /* Buttons */
-    .stButton > button {
-        background: linear-gradient(90deg, #7209b7 0%, #560bad 100%) !important;
-        color: white !important;
-        border: 2px solid #9d4edd !important;
-        border-radius: 10px !important;
-        padding: 0.5rem 1.5rem !important;
-        font-weight: 600 !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    .stButton > button:hover {
-        background: linear-gradient(90deg, #9d4edd 0%, #7209b7 100%) !important;
-        box-shadow: 0 0 20px rgba(157, 78, 221, 0.5) !important;
-        transform: translateY(-2px) !important;
-    }
-    
-    /* File uploader */
-    [data-testid="stFileUploader"] {
-        background: rgba(157, 78, 221, 0.1) !important;
-        border: 2px dashed #9d4edd !important;
-        border-radius: 10px !important;
-        padding: 1rem !important;
-    }
-    
-    /* Dataframe */
-    .dataframe {
-        background: rgba(0, 0, 0, 0.3) !important;
-        border-radius: 10px !important;
-    }
-    
-    /* Info/Warning boxes */
-    .stAlert {
-        background: rgba(0, 217, 255, 0.1) !important;
-        border-left: 4px solid #00d9ff !important;
-        border-radius: 5px !important;
-    }
-    
-    /* Expander */
-    .streamlit-expanderHeader {
-        background: rgba(157, 78, 221, 0.2) !important;
-        border-radius: 8px !important;
-        color: #00d9ff !important;
-        font-weight: 600 !important;
-    }
-    
-    /* Download button */
-    .stDownloadButton > button {
-        background: linear-gradient(90deg, #00d9ff 0%, #0096c7 100%) !important;
-        color: #0f2027 !important;
-        border: none !important;
-        border-radius: 10px !important;
-        font-weight: 700 !important;
-        padding: 0.6rem 1.5rem !important;
-    }
-    
-    .stDownloadButton > button:hover {
-        background: linear-gradient(90deg, #48cae4 0%, #00d9ff 100%) !important;
-        box-shadow: 0 0 20px rgba(0, 217, 255, 0.5) !important;
-    }
-    
-    /* Radio buttons */
-    .stRadio > div {
-        background: rgba(157, 78, 221, 0.1) !important;
-        padding: 1rem !important;
-        border-radius: 10px !important;
+    .stButton>button:hover {
+        border-color: #e94560;
+        background-color: #e94560;
+        color: white;
     }
 </style>
 """, unsafe_allow_html=True)
+
 
 # ----------------- CACHED DATA LOADING -----------------
 @st.cache_resource
@@ -145,35 +78,37 @@ model = load_object_from_zip('wsn_modelC.zip', 'wsn_model.joblib')
 scaler = load_joblib_direct('scaler.joblib')
 expected_features = load_joblib_direct('feature_names.joblib')
 
+
 # ----------------- PAGE SELECTION -----------------
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["Live Intrusion Detection", "About the Project"])
+
 
 # ----------------- ABOUT PAGE -----------------
 if page == "About the Project":
     st.title("🛡️ WSN Intrusion Detection System")
     st.markdown("### A Machine Learning Approach to Secure Wireless Sensor Networks")
-    
+    # (About page content remains the same)
     st.markdown("""
     This project leverages a **Random Forest classifier** to detect intrusions in Wireless Sensor Networks (WSNs).
     Navigate to the **Live Intrusion Detection** page to upload your own WSN data and see the model in action!
     """)
-    
-    st.image("https://placehold.co/800x300/2c5364/00d9ff?text=WSN+Security+Concept", caption="Securing the sensory backbone of the IoT.")
+    st.image("https://placehold.co/800x300/1a1a2e/e94560?text=WSN+Security+Concept", caption="Securing the sensory backbone of the IoT.")
+
 
 # ----------------- DETECTION PAGE -----------------
 elif page == "Live Intrusion Detection":
     st.title("🕵️ Live Network Traffic Analysis")
     st.markdown("Upload a CSV file containing WSN traffic data. The system will analyze each packet and classify it as **Normal** or a specific type of **Attack**.")
-    
+
     uploaded_file = st.file_uploader("Choose a CSV file", type="csv", help="Upload a file with the same format as the training data.")
-    
+
     if uploaded_file is not None:
         df_test = pd.read_csv(uploaded_file)
         
         with st.expander("Show Uploaded Data Preview"):
             st.dataframe(df_test.head())
-        
+
         try:
             df_display = df_test.copy()
             
@@ -181,11 +116,71 @@ elif page == "Live Intrusion Detection":
                 st.error("CSV File Error: The uploaded file is missing required columns.")
                 st.info(f"Required columns are: {expected_features}")
                 st.stop()
-            
+
             X_test = df_test[expected_features]
             X_test_scaled = scaler.transform(X_test)
             predictions = model.predict(X_test_scaled)
-            
+
             attack_labels = {3: 'Normal Traffic', 0: 'Blackhole Attack', 1: 'Flooding Attack', 2: 'Grayhole Attack', 4: 'Scheduling Attack'}
             df_display['Prediction'] = [attack_labels.get(p, 'Unknown') for p in predictions]
             df_display['Is Attack'] = df_display['Prediction'] != 'Normal Traffic'
+
+            total_packets = len(df_display)
+            threats_detected = df_display['Is Attack'].sum()
+            normal_packets = total_packets - threats_detected
+
+            st.markdown("---")
+            st.header("Analysis Dashboard")
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Total Packets Analyzed", f"{total_packets:,}")
+            col2.metric("Normal Packets", f"{normal_packets:,}")
+            col3.metric("Threats Detected", f"{threats_detected:,}")
+
+            st.markdown("---")
+            st.header("Prediction Results & Visualization")
+
+            col1_viz, col2_viz = st.columns([0.6, 0.4])
+
+            with col1_viz:
+                # --- START OF CORRECTED CODE ---
+                st.subheader("Detailed Packet Analysis (Top 1000 Rows)")
+                def highlight_attacks(row):
+                    return ['background-color: #e94560; color: white' if row['Is Attack'] else '' for _ in row]
+                
+                # Only style and display the first 1000 rows
+                st.dataframe(df_display.head(1000).style.apply(highlight_attacks, axis=1), height=350)
+
+                # Prepare the full file for download
+                @st.cache_data # Cache the conversion to make downloads faster
+                def convert_df_to_csv(df):
+                    return df.to_csv(index=False).encode('utf-8')
+
+                csv = convert_df_to_csv(df_display)
+
+                st.download_button(
+                    label="📥 Download Full Results (CSV)",
+                    data=csv,
+                    file_name='prediction_results.csv',
+                    mime='text/csv',
+                )
+                # --- END OF CORRECTED CODE ---
+
+            with col2_viz:
+                st.subheader("Prediction Summary")
+                summary_df = df_display['Prediction'].value_counts().reset_index()
+                summary_df.columns = ['Prediction Type', 'Count']
+                
+                fig = px.pie(summary_df, names='Prediction Type', values='Count', hole=0.5,
+                             color_discrete_map={'Normal Traffic': '#16c79a',
+                                                 'Blackhole Attack': '#e94560',
+                                                 'Flooding Attack': '#ff8c00',
+                                                 'Grayhole Attack': '#f08080',
+                                                 'Scheduling Attack': '#ff6347'})
+                fig.update_layout(title_text='Distribution of Predictions', template='plotly_dark', legend_title_text='Traffic Type')
+                st.plotly_chart(fig, use_container_width=True)
+
+        except Exception as e:
+            st.error(f"An error occurred during prediction: {e}")
+
+    else:
+        st.info("Awaiting CSV file upload...")
